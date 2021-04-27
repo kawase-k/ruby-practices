@@ -18,22 +18,21 @@ frames = shots.each_slice(2).to_a
 point = 0
 frames.each_with_index do |frame, i|
   # 10フレーム以降の処理
-  if i >= 9
-    point += frame.sum
-    break if i == -1
-  # ダブルストライクの処理
-  elsif frame[0] == 10 && frames[i + 1][0] == 10
-    point += 20 + frames[i + 2][0]
-  # ストライクの処理
-  elsif frame[0] == 10
-    point += 10 + frames[i + 1].sum
-  # スペアの処理
-  elsif frame.sum == 10
-    point += 10 + frames[i + 1][0]
-  # ストライクでもスペアでもないときの処理
-  else
-    point += frame.sum
-  end
+  point += if i >= 9
+             frame.sum
+           # ダブルストライクの処理
+           elsif frame[0] == 10 && frames[i + 1][0] == 10
+             20 + frames[i + 2][0]
+           # ストライクの処理
+           elsif frame[0] == 10
+             10 + frames[i + 1].sum
+           # スペアの処理
+           elsif frame.sum == 10
+             10 + frames[i + 1][0]
+           # ストライクでもスペアでもないときの処理
+           else
+             frame.sum
+           end
 end
 
 puts point
