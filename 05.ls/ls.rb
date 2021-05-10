@@ -7,13 +7,13 @@ params = ARGV.getopts('a', 'l', 'r')
 lists = Dir.glob('*')
 
 # ls -aの処理
-lists = Dir.glob('*', File::FNM_DOTMATCH) if params['a'] == true
+lists = Dir.glob('*', File::FNM_DOTMATCH) if params['a']
 
 # ls -rの処理
-lists = lists.reverse if params['r'] == true
+lists = lists.reverse if params['r']
 
 # ls -lの処理
-if params['l'] == true
+if params['l']
   # ファイルタイプの変換
   def file_type(type)
     {
@@ -26,33 +26,22 @@ if params['l'] == true
   def file_mode(mode)
     e = []
     mode.each do |m|
-      case m
-      when '0'
-        e << '---'
-      when '1'
-        e << '--x'
-      when '2'
-        e << '-w-'
-      when '3'
-        e << '-wx'
-      when '4'
-        e << 'r--'
-      when '5'
-        e << 'r-x'
-      when '6'
-        e << 'rw-'
-      when '7'
-        e << 'rwx'
-      end
+      replaces = {
+        '0' => '---',
+        '1' => '--x',
+        '2' => '-w-',
+        '3' => '-wx',
+        '4' => 'r--',
+        '5' => 'r-x',
+        '6' => 'rw-',
+        '7' => 'rwx'
+      }
+      e << replaces[m]
     end
     e.join
   end
 
-  total = 0
-  lists.each do |list|
-    file = File.stat(list) # File::Statオブジェクトの生成
-    total += file.blocks # total
-  end
+  total = lists.sum { |list| File.stat(list).blocks }
   puts "total #{total}"
 
   lists.each do |list|
@@ -70,28 +59,29 @@ if params['l'] == true
   return
 end
 
-# 各要素のサイズを3で割り切れるように揃える。不揃いであればnilを追加する。
-case lists.size % 3
-when 2
-  lists.push(nil)
-when 1
-  lists.push << nil << nil
+# 3列の値を変数に代入。
+lists_to_divide = []
+divided = 3
+
+# 各要素のサイズを揃えるための下準備。
+lists.each_slice(divided) do |list|
+  lists_to_divide << list
 end
+
+# 各要素のサイズを揃えて平坦化させる。
+flatten_lists = lists_to_divide.map { |d| d.values_at(0...divided) }.flatten
 
 # transposeを用いて行と列の入れ替えをする。
-transpose_lists = []
-lists.each_slice(lists.size / 3) do |list|
-  transpose_lists << list
+t = []
+flatten_lists.each_slice(flatten_lists.size / divided) do |l|
+  t << l
 end
-transpose_lists = transpose_lists.transpose.flatten
+transpose_lists = t.transpose
 
 # 横に最大3列の表示を維持させて、それぞれのファイル間に空白を入れる。
-transpose_lists.each_with_index do |list, i|
-  i += 1
-  if (i % 3).zero?
-    print list
-    print "\n"
-  else
-    print list.to_s.ljust(24)
+transpose_lists.each do |t_lists|
+  t_lists.each do |t_list|
+    print t_list.to_s.ljust(24)
   end
+  print "\n"
 end
