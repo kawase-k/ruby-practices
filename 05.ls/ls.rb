@@ -24,21 +24,17 @@ if params['l']
 
   # パーミッションの変換
   def file_mode(mode)
-    e = []
-    mode.each do |m|
-      replaces = {
-        '0' => '---',
-        '1' => '--x',
-        '2' => '-w-',
-        '3' => '-wx',
-        '4' => 'r--',
-        '5' => 'r-x',
-        '6' => 'rw-',
-        '7' => 'rwx'
-      }
-      e << replaces[m]
-    end
-    e.join
+    replaces = {
+      '0' => '---',
+      '1' => '--x',
+      '2' => '-w-',
+      '3' => '-wx',
+      '4' => 'r--',
+      '5' => 'r-x',
+      '6' => 'rw-',
+      '7' => 'rwx'
+    }
+    mode.map { |m| replaces[m] }.join
   end
 
   total = lists.sum { |list| File.stat(list).blocks }
