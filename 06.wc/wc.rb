@@ -18,45 +18,45 @@ end
 # wcコマンドに引数がなかったときの処理
 def argument_no
   @input = $stdin.read
-  common_variable
-
-  result
+  output_items
   puts
 end
 
-# 引数があったときの処理
+# wcコマンドに引数があったときの処理
 def argument_has
   @files.each do |file|
     @input = File.read(file)
-    common_variable
-
-    result
+    output_items
     print " #{file}"
     puts
 
-    arguments
+    add
   end
-  total_value if @files[1]
+  output_total_items if @files[1]
 end
 
-# 出力をまとめる
-def result
-  print @line
-  return false if @params['l']
+# 引数の有無に応じてそれぞれの出力を表示する
+def output_items
+  line = @input.count("\n").to_s.rjust(8)
+  word = @input.split(/\s+/).size.to_s.rjust(8)
+  byte = @input.bytesize.to_s.rjust(8)
 
-  print @word
-  print @byte
+  print line
+  return if @params['l']
+
+  print word
+  print byte
 end
 
 # 引数が複数個あったときの処理
-def arguments
+def add
   @total_lines    += @input.count("\n")
   @total_words    += @input.split(/\s+/).size
   @total_bytesize += @input.bytesize
 end
 
 # total値を表示するための処理
-def total_value
+def output_total_items
   print @total_lines.to_s.rjust(8)
   if @params['l'] == false
     print @total_words.to_s.rjust(8)
@@ -64,13 +64,6 @@ def total_value
   end
   print ' total'
   puts
-end
-
-# 共通する変数をメソッドでまとめる
-def common_variable
-  @line = @input.count("\n").to_s.rjust(8)
-  @word = @input.split(/\s+/).size.to_s.rjust(8)
-  @byte = @input.bytesize.to_s.rjust(8)
 end
 
 main
