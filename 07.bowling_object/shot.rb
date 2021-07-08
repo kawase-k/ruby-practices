@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Shot
   attr_reader :mark
 
@@ -7,6 +9,7 @@ class Shot
 
   def convert_to_int
     return 10 if mark == 'X'
+
     mark.to_i
   end
 end

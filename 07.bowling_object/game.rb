@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Game
   attr_reader :scores
 
@@ -31,20 +33,19 @@ class Game
   def point
     frames = build_frames(scores)
     point  = 0
-    frames.each_with_index do |f, i|
-      frame = Frame.new(*f)
-      if i >= 9
-        point += frame.frames
-      elsif frame.strike? && frames[i.next] == [10]
-        point += 20 + frames[i + 2][0] || 20 + frames[i + 1][0..1]
-      elsif frame.strike?
-        point += 10 + frames[i + 1][0..1].sum
-      elsif frame.spare?
-        point += 10 + frames[i + 1][0]
-      else
-        point += frame.frames
-      end
+    9.times do |i|
+      frame = Frame.new(*frames[i])
+      point += if frame.strike? && frames[i.next] == [10]
+                 20 + frames[i + 2][0] || 20 + frames[i + 1][0..1]
+               elsif frame.strike?
+                 10 + frames[i + 1][0..1].sum
+               elsif frame.spare?
+                 10 + frames[i + 1][0]
+               else
+                 frame.frames
+               end
     end
-    point
+    last_frame = Frame.new(*frames.last)
+    point += last_frame.frames
   end
 end
