@@ -1,51 +1,40 @@
 # frozen_string_literal: true
 
 class Game
-  attr_reader :scores
-
-  def initialize(scores)
-    @scores = scores
+  def initialize(score)
+    @score = score
   end
 
-  def create_shot_object(scores)
-    strings = scores.chars
-    strings.map do |s|
-      shot = Shot.new(s)
-      shot.convert_to_int
-    end
-  end
-
-  def build_frames(scores)
-    integers = create_shot_object(scores)
+  def build_frames(score)
+    strings = score.split(',')
     frames = []
     9.times do
-      first = integers.shift
-      if first == 10
-        frames << [10]
+      first = strings.shift
+      if first == 'X'
+        frames << ['X']
       else
-        second = integers.shift
+        second = strings.shift
         frames << [first, second]
       end
     end
-    frames << integers
+    frames << strings
+    frames.map {|frame| Frame.new(*frame)}
   end
 
   def point
-    frames = build_frames(scores)
-    point  = 0
-    9.times do |i|
-      frame = Frame.new(*frames[i])
-      point += if frame.strike? && frames[i.next] == [10]
-                 20 + frames[i + 2][0] || 20 + frames[i + 1][0..1]
-               elsif frame.strike?
-                 10 + frames[i + 1][0..1].sum
-               elsif frame.spare?
-                 10 + frames[i + 1][0]
-               else
-                 frame.frames
-               end
+    frames = build_frames(@score)
+    point = 0
+    frames.each_with_index do |frame, i|
+      if frame.last_frame(i)
+        point += frame.scores
+      elsif frame.strike?
+        point += frame.add_strike_scores(frames, i)
+      elsif frame.spare?
+        point += frame.add_spare_scores(frames, i)
+      else
+        point += frame.scores
+      end
     end
-    last_frame = Frame.new(*frames.last)
-    point += last_frame.frames
+    p point
   end
 end

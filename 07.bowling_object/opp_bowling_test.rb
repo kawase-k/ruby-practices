@@ -8,19 +8,12 @@ require './game'
 MiniTest::Unit.autorun
 
 class TestOppBowling < MiniTest::Unit::TestCase
-  def setup
-    @game1 = Game.new('6390038273X9180X645')
-    @game2 = Game.new('6390038273X9180XXXX')
-    @game3 = Game.new('0X150000XXX518104')
-    @game4 = Game.new('6390038273X9180XX00')
-    @game5 = Game.new('XXXXXXXXXXXX')
-  end
+  def test_oop_bowling
+    assert_equal 139, Game.new('6,3,9,0,0,3,8,2,7,3,X,9,1,8,0,X,6,4,5').point
 
-  def test_oppbowling
-    assert_equal 139, @game1.point
-    assert_equal 164, @game2.point
-    assert_equal 107, @game3.point
-    assert_equal 134, @game4.point
-    assert_equal 300, @game5.point
+    assert_equal 164, Game.new('6,3,9,0,0,3,8,2,7,3,X,9,1,8,0,X,X,X,X').point
+    assert_equal 107, Game.new('0,10,1,5,0,0,0,0,X,X,X,5,1,8,1,0,4').point
+    assert_equal 134, Game.new('6,3,9,0,0,3,8,2,7,3,X,9,1,8,0,X,X,0,0').point
+    assert_equal 300, Game.new('X,X,X,X,X,X,X,X,X,X,X,X').point
   end
 end
