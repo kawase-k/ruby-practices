@@ -25,16 +25,8 @@ class Game
     frames = build_frames(@score)
     point = 0
     frames.each_with_index do |frame, i|
-      point += if frame.last_frame(i)
-                 frame.scores
-               elsif frame.strike?
-                 frame.add_strike_scores(frames, i)
-               elsif frame.spare?
-                 frame.add_spare_scores(frames, i)
-               else
-                 frame.scores
-               end
+      point += frame.total_score(frames, i)
     end
-    p point
+    point
   end
 end
