@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'optparse'
 require 'etc'
 
@@ -66,8 +68,8 @@ class ShortFormatFile
 
   def transpose_file_paths(paths)
     files = []
-    paths.each_slice(COLUMN_NUMBER) {|path| files << path}
-    flatten_file_paths = files.map {|file| file.values_at(0...COLUMN_NUMBER)}.flatten
+    paths.each_slice(COLUMN_NUMBER) { |path| files << path }
+    flatten_file_paths = files.map { |file| file.values_at(0...COLUMN_NUMBER) }.flatten
     files.clear
     flatten_file_paths.each_slice(flatten_file_paths.size / COLUMN_NUMBER) do |path|
       files << path
@@ -79,7 +81,7 @@ end
 class LongFormat
   def initialize(files)
     @files              = files
-    @total_files_blocks = files.sum {|file| file.blocks}
+    @total_files_blocks = files.sum(&:blocks)
   end
 
   def print_result
