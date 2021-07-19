@@ -3,11 +3,30 @@
 class Frame
   attr_reader :first_shot, :second_shot
 
-  def initialize(first_mark, second_mark = nil, third_mark = nil)
+  def initialize(current_marks, frame_index, next_two_marks = nil)
+    first_mark, second_mark, third_mark = *current_marks
     @first_shot  = Shot.new(first_mark)
     @second_shot = Shot.new(second_mark)
     @third_shot  = Shot.new(third_mark)
+    @frame_index = frame_index
+    next_mark, next_next_mark = *next_two_marks
+    @next_shot      = Shot.new(next_mark)
+    @next_next_shot = Shot.new(next_next_mark)
   end
+
+  def total_score
+    if last_frame?
+      scores
+    elsif strike?
+      add_strike_scores
+    elsif spare?
+      add_spare_scores
+    else
+      scores
+    end
+  end
+
+  private
 
   def scores
     [@first_shot.score, @second_shot.score, @third_shot.score].sum
@@ -21,44 +40,32 @@ class Frame
     [@first_shot.score, @second_shot.score].sum == 10 && !strike?
   end
 
-  def add_strike_scores(frames, index)
-    now_frame       = scores
-    next_frame      = frames[index + 1]
-    next_next_frame = frames[index + 2]
-    if before_last_frame?(index)
-      now_frame + [next_frame.first_shot.score, next_frame.second_shot.score].sum
-    elsif next_frame.strike?
-      now_frame + [next_frame.scores, next_next_frame.first_shot.score].sum
+  def add_strike_scores
+    current_score    = scores
+    next_total_score = [@next_shot.score, @next_next_shot.score].sum
+    next_shot_strike = @next_shot.score == 10
+
+    if before_last_frame?
+      current_score + next_total_score
+    elsif next_shot_strike
+      current_score + next_total_score
     else
-      now_frame + [next_frame.first_shot.score, next_frame.second_shot.score].sum
+      current_score + next_total_score
     end
   end
 
-  def add_spare_scores(frames, index)
-    now_frame  = scores
-    next_frame = frames[index + 1]
-    now_frame + next_frame.first_shot.score
+  def add_spare_scores
+    current_score = scores
+    next_score    = @next_shot.score
+
+    current_score + next_score
   end
 
-  # 9フレーム目かどうか
-  def before_last_frame?(index)
-    index == 8
+  def before_last_frame?
+    @frame_index == 8
   end
 
-  # 10フレーム目かどうか
-  def last_frame?(index)
-    index == 9
-  end
-
-  def total_score(frames, index)
-    if last_frame?(index)
-      scores
-    elsif strike?
-      add_strike_scores(frames, index)
-    elsif spare?
-      add_spare_scores(frames, index)
-    else
-      scores
-    end
+  def last_frame?
+    @frame_index == 9
   end
 end

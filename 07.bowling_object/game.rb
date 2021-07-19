@@ -3,6 +3,7 @@
 class Game
   def initialize(score)
     @score = score
+    @frames = build_frames(score)
   end
 
   def build_frames(score)
@@ -18,15 +19,15 @@ class Game
       end
     end
     frames << strings
-    frames.map { |frame| Frame.new(*frame) }
+    frames.map.with_index(0) do |frame_marks, frame_index|
+      next_two_marks = [frames[frame_index.next], frames[frame_index.next.next]].compact.flatten.slice(0, 2)
+      Frame.new(frame_marks, frame_index, next_two_marks)
+    end
   end
 
   def point
-    frames = build_frames(@score)
     point = 0
-    frames.each_with_index do |frame, i|
-      point += frame.total_score(frames, i)
-    end
+    @frames.each {|frame| point += frame.total_score}
     point
   end
 end
