@@ -27,7 +27,7 @@ class Game
 
   def point
     point = 0
-    @frames.each {|frame| point += frame.total_score}
+    @frames.each { |frame| point += frame.total_score }
     point
   end
 end

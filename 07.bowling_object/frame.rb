@@ -43,15 +43,8 @@ class Frame
   def add_strike_scores
     current_score    = scores
     next_total_score = [@next_shot.score, @next_next_shot.score].sum
-    next_shot_strike = @next_shot.score == 10
 
-    if before_last_frame?
-      current_score + next_total_score
-    elsif next_shot_strike
-      current_score + next_total_score
-    else
-      current_score + next_total_score
-    end
+    current_score + next_total_score
   end
 
   def add_spare_scores
@@ -59,10 +52,6 @@ class Frame
     next_score    = @next_shot.score
 
     current_score + next_score
-  end
-
-  def before_last_frame?
-    @frame_index == 8
   end
 
   def last_frame?
