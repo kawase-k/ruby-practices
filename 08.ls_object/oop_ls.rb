@@ -23,6 +23,17 @@ end
 class LongFormatFile
   attr_reader :type, :permission, :nlink, :uid, :gid, :size, :mtime, :path, :blocks
 
+  PERMISSION = {
+    '0' => '---',
+    '1' => '--x',
+    '2' => '-w-',
+    '3' => '-wx',
+    '4' => 'r--',
+    '5' => 'r-x',
+    '6' => 'rw-',
+    '7' => 'rwx'
+  }.freeze
+
   def initialize(file_path, file_stat)
     @type       = file_stat.directory? ? 'd' : '-'
     @permission = convert_permimmison(file_stat.mode.to_s(8)[-3, 3].chars)
@@ -35,54 +46,39 @@ class LongFormatFile
     @blocks     = file_stat.blocks
   end
 
+  private
+
   def convert_permimmison(mode)
-    replaces = {
-      '0' => '---',
-      '1' => '--x',
-      '2' => '-w-',
-      '3' => '-wx',
-      '4' => 'r--',
-      '5' => 'r-x',
-      '6' => 'rw-',
-      '7' => 'rwx'
-    }
-    mode.map { |m| replaces[m] }.join
+    mode.map { |m| PERMISSION[m] }.join
   end
 end
 
 class ShortFormatFile
-  NUM_OF_HORIZONTAL_DISP = 3
-  attr_reader :files
+  attr_reader :transpose_files
 
-  def initialize(files)
-    @files = transpose_lists(files)
+  COLUMN_NUMBER = 3
+
+  def initialize(file_paths)
+    @transpose_files = transpose_file_paths(file_paths)
   end
 
-  def slice_divided(files)
-    files_to_divide = []
+  private
 
-    files.each_slice(NUM_OF_HORIZONTAL_DISP) do |file|
-      files_to_divide << file
+  def transpose_file_paths(paths)
+    files = []
+    paths.each_slice(COLUMN_NUMBER) {|path| files << path}
+    flatten_file_paths = files.map {|file| file.values_at(0...COLUMN_NUMBER)}.flatten
+    files.clear
+    flatten_file_paths.each_slice(flatten_file_paths.size / COLUMN_NUMBER) do |path|
+      files << path
     end
-    files_to_divide
-  end
-
-  def flatten_lists(files)
-    slice_divided(files).map {|d| d.values_at(0...NUM_OF_HORIZONTAL_DISP)}.flatten
-  end
-
-  def transpose_lists(files)
-    t = []
-    flatten_lists(files).each_slice(flatten_lists(files).size / NUM_OF_HORIZONTAL_DISP) do |l|
-      t << l
-    end
-    transpose_lists = t.transpose
+    files.transpose
   end
 end
 
 class LongFormat
   def initialize(files)
-    @files = files
+    @files              = files
     @total_files_blocks = files.sum {|file| file.blocks}
   end
 
@@ -106,9 +102,9 @@ class ShortFormat
   end
 
   def print_result
-    @files.files.each do |file|
-      file.each do |f|
-        print f.to_s.ljust(24)
+    @files.transpose_files.each do |file|
+      file.each do |n|
+        print n.to_s.ljust(24)
       end
       puts
     end
