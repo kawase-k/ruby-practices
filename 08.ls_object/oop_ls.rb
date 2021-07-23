@@ -7,13 +7,9 @@ class Command
   def initialize(a_option: false, l_option: false, r_option: false)
     file_paths        = a_option ? Dir.glob('*', File::FNM_DOTMATCH) : Dir.glob('*')
     sorted_file_paths = r_option ? file_paths.reverse : file_paths.sort
-    files             = if l_option
-                          sorted_file_paths.map do |file_path|
-                            LongFormatFile.new(file_path, File::Stat.new(file_path))
-                          end
-                        else
-                          ShortFormatFile.new(sorted_file_paths)
-                        end
+    files             = sorted_file_paths.map do |file_path|
+      FormatFile.new(file_path, File::Stat.new(file_path), l_option)
+    end
     @format = l_option ? LongFormat.new(files) : ShortFormat.new(files)
   end
 
@@ -22,7 +18,7 @@ class Command
   end
 end
 
-class LongFormatFile
+class FormatFile
   attr_reader :type, :permission, :nlink, :uid, :gid, :size, :mtime, :path, :blocks
 
   PERMISSION = {
@@ -36,45 +32,25 @@ class LongFormatFile
     '7' => 'rwx'
   }.freeze
 
-  def initialize(file_path, file_stat)
-    @type       = file_stat.directory? ? 'd' : '-'
-    @permission = convert_permimmison(file_stat.mode.to_s(8)[-3, 3].chars)
-    @nlink      = file_stat.nlink
-    @uid        = Etc.getpwuid(file_stat.uid).name
-    @gid        = Etc.getgrgid(file_stat.gid).name
-    @size       = file_stat.size
-    @mtime      = file_stat.mtime.strftime('%_m %_d %H:%M')
-    @path       = file_path
-    @blocks     = file_stat.blocks
+  def initialize(file_path, file_stat, l_option)
+    if l_option
+      @type       = file_stat.directory? ? 'd' : '-'
+      @permission = convert_permimmison(file_stat.mode.to_s(8)[-3, 3].chars)
+      @nlink      = file_stat.nlink
+      @uid        = Etc.getpwuid(file_stat.uid).name
+      @gid        = Etc.getgrgid(file_stat.gid).name
+      @size       = file_stat.size
+      @mtime      = file_stat.mtime.strftime('%_m %_d %H:%M')
+      @path       = file_path
+      @blocks     = file_stat.blocks
+    end
+    @path = file_path
   end
 
   private
 
   def convert_permimmison(mode)
     mode.map { |m| PERMISSION[m] }.join
-  end
-end
-
-class ShortFormatFile
-  attr_reader :transpose_files
-
-  COLUMN_NUMBER = 3
-
-  def initialize(file_paths)
-    @transpose_files = transpose_file_paths(file_paths)
-  end
-
-  private
-
-  def transpose_file_paths(paths)
-    files = []
-    paths.each_slice(COLUMN_NUMBER) { |path| files << path }
-    flatten_file_paths = files.map { |file| file.values_at(0...COLUMN_NUMBER) }.flatten
-    files.clear
-    flatten_file_paths.each_slice(flatten_file_paths.size / COLUMN_NUMBER) do |path|
-      files << path
-    end
-    files.transpose
   end
 end
 
@@ -100,16 +76,26 @@ end
 
 class ShortFormat
   def initialize(files)
-    @files = files
+    @transpose_files = transpose_file_paths(files)
   end
 
   def print_result
-    @files.transpose_files.each do |file|
-      file.each do |n|
-        print n.to_s.ljust(24)
+    @transpose_files.each do |file_array|
+      file_array.each do |file|
+        print file.path.ljust(24) unless file.nil?
       end
       puts
     end
+  end
+
+  private
+
+  COLUMN_NUMBER = 3
+
+  def transpose_file_paths(paths)
+    files = paths.each_slice(COLUMN_NUMBER).to_a
+    flatten_file_paths = files.map { |file| file.values_at(0...COLUMN_NUMBER) }.flatten
+    flatten_file_paths.each_slice(flatten_file_paths.size / COLUMN_NUMBER).to_a.transpose
   end
 end
 
