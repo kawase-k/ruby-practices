@@ -2,6 +2,7 @@
 
 class ShortFormatter
   PADDING = 24
+  COLUMN_LENGTH = 3
 
   def initialize(file_details)
     @file_details = file_details
@@ -18,8 +19,6 @@ class ShortFormatter
   end
 
   private
-
-  COLUMNLENGTH = 3
 
   def transpose_file_details(paths)
     sliced_file_details = paths.each_slice(COLUMNLENGTH).to_a

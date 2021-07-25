@@ -18,7 +18,7 @@ class Command
 
   def output
     file_paths = @a_option ? Dir.glob('*', File::FNM_DOTMATCH) : Dir.glob('*')
-    sorted_file_paths = @r_option ? file_paths.reverse : file_paths.sort
+    sorted_file_paths = @r_option ? file_paths.reverse : file_paths
     file_details = sorted_file_paths.map do |file_path|
       FileDetail.new(file_path, File::Stat.new(file_path))
     end
